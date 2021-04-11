@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.caiyanjia.notes.controller.informationController">
+
+
+
+
+   <children>
+      <TextField fx:id="id" layoutX="220.0" layoutY="99.0" />
+      <TextField fx:id="name" layoutX="220.0" layoutY="155.0" />
+      <TextField fx:id="password" layoutX="220.0" layoutY="219.0" />
+      <Label layoutX="185.0" layoutY="99.0" prefHeight="23.0" prefWidth="35.0" text="id：" />
+      <Label layoutX="170.0" layoutY="155.0" prefHeight="23.0" prefWidth="50.0" text="name:" />
+      <Label layoutX="163.0" layoutY="219.0" prefHeight="23.0" prefWidth="61.0" text="password" />
+      <Label layoutX="236.0" layoutY="23.0" prefHeight="51.0" prefWidth="115.0" text="个人信息" textFill="#f201da">
+         <font>
+            <Font size="26.0" />
+         </font>
+      </Label>
+      <Button fx:id="backButton" layoutX="166.0" layoutY="282.0" mnemonicParsing="false" onAction="#back" prefHeight="37.0" prefWidth="74.0" text="返回" />
+      <Button fx:id="submitButton" layoutX="314.0" layoutY="282.0" mnemonicParsing="false" onAction="#submit" prefHeight="37.0" prefWidth="74.0" text="提交修改" />
+      <Label layoutX="43.0" layoutY="27.0" prefHeight="44.0" prefWidth="105.0" text="用户状态：正常" textFill="#04d323" />
+      <Label fx:id="idTip" layoutX="221.0" layoutY="122.0" prefHeight="15.0" prefWidth="125.0" textFill="#fc0000" />
+      <Label fx:id="psTip" layoutX="221.0" layoutY="242.0" prefHeight="15.0" prefWidth="125.0" textFill="#f50000" />
+      <Label fx:id="nameTip" layoutX="221.0" layoutY="178.0" prefHeight="15.0" prefWidth="125.0" textFill="#ee0404" />
+   </children>
+</AnchorPane>
+
+

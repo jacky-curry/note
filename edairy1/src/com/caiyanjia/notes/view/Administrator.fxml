@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.caiyanjia.notes.controller.AdministratorController">
+   <children>
+      <Button fx:id="notice_submit_button" layoutY="31.0" mnemonicParsing="false" onAction="#notice_submit" prefHeight="54.0" prefWidth="102.0" text="发布公告">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Button>
+      <TableView fx:id="user_date" layoutX="256.0" layoutY="85.0" prefHeight="293.0" prefWidth="336.0">
+        <columns>
+          <TableColumn prefWidth="75.0" text="user_id" />
+          <TableColumn prefWidth="75.0" text="name" />
+            <TableColumn fx:id="edit" prefWidth="75.0" text="查看笔记" />
+            <TableColumn fx:id="blackList" prefWidth="75.0" text="设置黑名单" />
+        </columns>
+      </TableView>
+      <TextArea fx:id="notice" layoutX="2.0" layoutY="85.0" prefHeight="293.0" prefWidth="253.0" />
+      <Label layoutX="490.0" layoutY="53.0" prefHeight="32.0" prefWidth="102.0" text="用户信息" textFill="#3e0af7">
+         <font>
+            <Font size="24.0" />
+         </font>
+      </Label>
+      <Label layoutX="184.0" layoutY="53.0" prefHeight="32.0" prefWidth="71.0" text="公告栏" textFill="#4300ff">
+         <font>
+            <Font size="21.0" />
+         </font>
+      </Label>
+      <Label layoutX="256.0" layoutY="14.0" prefHeight="32.0" prefWidth="208.0" text="管理员界面" textFill="#e40f0f">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>
