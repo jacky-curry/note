@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="528.0" prefWidth="601.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.caiyanjia.notes.controller.ViewOnlyController">
+   <children>
+      <TextArea fx:id="contentText" layoutX="144.0" layoutY="52.0" prefHeight="477.0" prefWidth="457.0" />
+      <TextField fx:id="lableText" layoutY="93.0" prefHeight="23.0" prefWidth="143.0" />
+      <Label layoutX="8.0" layoutY="70.0" prefHeight="23.0" prefWidth="35.0" text="title" />
+      <Label layoutX="8.0" layoutY="148.0" prefHeight="23.0" prefWidth="58.0" text="author" />
+      <TextField fx:id="authorText" layoutY="171.0" prefHeight="23.0" prefWidth="143.0" />
+      <Label alignment="CENTER" contentDisplay="CENTER" layoutX="144.0" layoutY="-1.0" prefHeight="53.0" prefWidth="307.0" text="Note Content" textFill="#ec07ed">
+         <font>
+            <Font size="25.0" />
+         </font>
+      </Label>
+      <Label fx:id="reminder" layoutY="233.0" prefHeight="23.0" prefWidth="143.0" />
+      <Button fx:id="return_meau" layoutY="476.0" mnemonicParsing="false" onAction="#gotoMeau" prefHeight="53.0" prefWidth="143.0" text="Back to meau" textFill="#5500f0">
+         <font>
+            <Font size="15.0" />
+         </font>
+      </Button>
+      <TextField fx:id="likeText" layoutY="253.0" prefHeight="23.0" prefWidth="143.0" />
+      <Label layoutX="14.0" layoutY="233.0" prefHeight="23.0" prefWidth="58.0" text="like" />
+      <TextField fx:id="post_date" layoutX="1.0" layoutY="338.0" prefHeight="23.0" prefWidth="143.0" />
+      <Label layoutX="8.0" layoutY="315.0" prefHeight="23.0" prefWidth="64.0" text="post_date" />
+   </children>
+</AnchorPane>

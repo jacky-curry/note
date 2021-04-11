@@ -1,0 +1,16 @@
+<component name="libraryTable">
+  <library name="Connector J 5">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../workplacejavaee/jdbc_1/bin/Connector J 5.1" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../workplacejavaee/jdbc_1/bin/Connector J 5.1" />
+    </SOURCES>
+    <excluded>
+      <root url="jar://$PROJECT_DIR$/../workplacejavaee/jdbc_1/bin/Connector J 5.1/mysql-connector-java-5.1.25-bin.jar!/" />
+    </excluded>
+    <jarDirectory url="file://$PROJECT_DIR$/../workplacejavaee/jdbc_1/bin/Connector J 5.1" recursive="false" />
+    <jarDirectory url="file://$PROJECT_DIR$/../workplacejavaee/jdbc_1/bin/Connector J 5.1" recursive="false" type="SOURCES" />
+  </library>
+</component>
