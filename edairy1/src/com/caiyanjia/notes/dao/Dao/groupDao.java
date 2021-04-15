@@ -1,6 +1,6 @@
 package com.caiyanjia.notes.dao.Dao;
 
-import com.caiyanjia.notes.bean.Group;
+import com.caiyanjia.notes.entity.Group;
 
 import java.sql.Connection;
 import java.util.List;

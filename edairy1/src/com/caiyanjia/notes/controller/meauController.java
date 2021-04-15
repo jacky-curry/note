@@ -1,13 +1,14 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.bean.Connect;
-import com.caiyanjia.notes.bean.Note;
-import com.caiyanjia.notes.bean.User;
-import com.caiyanjia.notes.dao.Dao.ConnectDao;
-import com.caiyanjia.notes.dao.Impl.noteDaoImpl;
-import com.caiyanjia.notes.dao.Impl.userDaoImpl;
+import com.caiyanjia.notes.bean.Msg;
+import com.caiyanjia.notes.entity.Note;
+import com.caiyanjia.notes.service.noteServer;
+import com.caiyanjia.notes.service.userServer;
 import com.caiyanjia.notes.util.JDBCUtils;
-import com.sun.xml.internal.ws.api.ha.StickyFeature;
+import com.caiyanjia.notes.view.Information;
+import com.caiyanjia.notes.view.NewNote;
+import com.caiyanjia.notes.view.ViewOnly;
+import com.caiyanjia.notes.view.myNote;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -19,8 +20,6 @@ import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -87,36 +86,30 @@ public class meauController extends ClassLoader implements Initializable {
     private TableColumn<noteDate, Integer> like;
 
 
+    private final String user_id = Msg.getUser_id();//做完登录信息传过来的user_id，赋值的话只能在监听器里面
 
 
 
-    noteDaoImpl notedaoimpl = new noteDaoImpl();
     Connection connection = JDBCUtils.getConnection();
-    ConnectDao connectdao = new ConnectDao();
-
 
     final ObservableList<noteDate> date = FXCollections.observableArrayList();
 
     public meauController() {
 
-//        showList();
-
     }
 
     @FXML
-    void myinformationShow(ActionEvent event) throws Exception {
+    void myInformationShow(ActionEvent event) throws Exception {
 
        Stage stage = (Stage) myInformation.getScene().getWindow();
         stage.hide();
         Stage primaryStage  = new Stage();
-        new Information().start(primaryStage);
+        new Information(user_id).start(primaryStage);
     }
 
     @FXML
     void notice_show(ActionEvent event) throws Exception {
-        Stage stage = new Stage();
         new noticeShow().start(new Stage());
-
     }
 
 
@@ -134,12 +127,13 @@ public class meauController extends ClassLoader implements Initializable {
     }
 
 
+    noteServer noteserver = new noteServer();
+    userServer userserver = new userServer();
 
+    List noteList = noteserver.getAllnote(connection);
 
-    List noteList = notedaoimpl.getAllnote(connection);
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
 
 
         //用于存储数据，要展现的数据添加到这里，作为数据源
@@ -179,18 +173,17 @@ public class meauController extends ClassLoader implements Initializable {
                                 //获取该行信息，
                                 try {
                                     AnchorPane login = (AnchorPane) loader.load();
-                                    replaceSceneContent("../view/ViewOnly.fxml");
+                                    new ViewOnly().start(new Stage());
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
 
 
-                                ViewOnlyController controller = (ViewOnlyController) loader.getController();
-                                controller.model.setText(noteLoad.getContent());
-                                controller.model.setAuthor(noteLoad.getAuthor());
-                                controller.model.setLike(noteLoad.getLike());
-                                controller.model.setDate(noteLoad.getPost_date());
-                                controller.model.setTitle(noteLoad.getTitle());
+                                ViewOnlyController.model.setText(noteLoad.getContent());
+                                ViewOnlyController.model.setAuthor(noteLoad.getAuthor());
+                                ViewOnlyController.model.setLike(noteLoad.getLike());
+                                ViewOnlyController.model.setDate(noteLoad.getPost_date());
+                                ViewOnlyController.model.setTitle(noteLoad.getTitle());
 
 
                             });
@@ -210,19 +203,38 @@ public class meauController extends ClassLoader implements Initializable {
 
         like_button.setCellFactory((col) -> {
 
-                    //UserLoad换成你自己的实体名称
                     TableCell<noteDate, String> cell = new TableCell<noteDate, String>() {
                         @Override
                         protected void updateItem(String item, boolean empty) {
                             super.updateItem(item, empty);
                             ToggleButton button1 = new RadioButton("点赞");
+                            button1.getStyleClass().remove("radio-button");
+                            button1.getStyleClass().add("toggle-button");
                             button1.setOnMouseClicked((col) -> {
                                 noteDate noteLoad = date.get(getIndex());
+
+
                                 if(button1.isSelected()){
-                                    notedaoimpl.likeIncrease(connection,noteLoad.getTitle());
+                                    if(!noteserver.ifThumbUp(connection,user_id,noteLoad.getTitle())) {
+
+                                        if(noteserver.thumbUp(connection,user_id,noteLoad.getTitle())){
+                                            noteserver.likeChange(1,noteLoad.getTitle());
+                                            System.out.println("点赞成功");
+                                            refresh(new ActionEvent());
+                                        }
+                                    }else{
+                                        System.out.println("已经点赞，点赞失败");
+                                    }
+
                                 }else{
-                                    notedaoimpl.likeDecrease(connection,noteLoad.getTitle());
+                                    if(noteserver.cancelThumbUp(connection,user_id,noteLoad.getTitle())){
+
+                                        noteserver.likeChange(0,noteLoad.getTitle());
+                                        refresh(new ActionEvent());
+                                        System.out.println("取消点赞成功");
+                                    }
                                 }
+
 
                             });
 
@@ -231,6 +243,7 @@ public class meauController extends ClassLoader implements Initializable {
                                 setText(null);
                                 setGraphic(null);
                             } else {
+
                                 this.setGraphic(button1);
                             }
                         }
@@ -238,18 +251,20 @@ public class meauController extends ClassLoader implements Initializable {
                     return cell;
                 }
         );
+
     }
 
 
 
 
 
+//        System.out.println(user_id);
+
+
     @FXML
     void gotoNewNote(ActionEvent event) throws Exception {
-        userDaoImpl userdaoimpl = new userDaoImpl();
-        User user = userdaoimpl.judgeUser(connection, connectdao.getId(connection));
-        System.out.println(user);
-        if(!user.getBlacklist()){
+
+        if(!userserver.ifIsBlackList(user_id)){
 
             Stage stage = new Stage();
             new NewNote().start(stage);
@@ -267,17 +282,13 @@ public class meauController extends ClassLoader implements Initializable {
      */
     @FXML
     void exit(ActionEvent event) throws SQLException {
-        ConnectDao connectDao = new ConnectDao();
-        Connection conn= JDBCUtils.getConnection();
-        connectDao.exit(conn);
-        conn.close();
         Stage primaryStage = (Stage) createNote.getScene().getWindow();
         primaryStage.hide();
     }
 
 
-    private Stage stage = new Stage();
-    private Initializable replaceSceneContent(String fxml) throws Exception {
+
+    private void replaceSceneContent(String fxml) throws Exception {
         FXMLLoader loader = new FXMLLoader();
         InputStream in = registerController.class.getResourceAsStream(fxml);
         loader.setBuilderFactory(new JavaFXBuilderFactory());
@@ -288,11 +299,12 @@ public class meauController extends ClassLoader implements Initializable {
         } finally {
             in.close();
         }
+        Stage stage = new Stage();
         Scene scene = new Scene(page);
         stage.setScene(scene);
         stage.sizeToScene();
         stage.show();
-        return (Initializable) loader.getController();
+        loader.getController();
     }
 
 
@@ -304,7 +316,7 @@ public class meauController extends ClassLoader implements Initializable {
             primaryStage.hide();
             //加载myNote
             try {
-                new myNote().start(primaryStage);
+                new myNote(user_id).start(primaryStage);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -317,8 +329,7 @@ public class meauController extends ClassLoader implements Initializable {
 
             System.out.println(text);
             List<Note> noteList = new ArrayList<>();
-            noteList  = notedaoimpl.searchByLabel(connection,text);
-            System.out.println(noteList);
+            noteList  = noteserver.searchByLabel(connection,text);
             if (noteList.size() != 0){
                 Tip.setText("");
                 for(int i = 0;i<noteList.size();i++){
@@ -329,14 +340,13 @@ public class meauController extends ClassLoader implements Initializable {
 
             }else {
                 Tip.setText("");
-                noteList = notedaoimpl.searchByAuthor(connection, text);
+                noteList = noteserver.searchByAuthor(connection, text);
                 System.out.println(noteList);
                 if (noteList.size() != 0) {
                     for (int i = 0; i < noteList.size(); i++) {
 
                         date.remove(1, date.size());//为什么这里是1
                         date.add(i, noteChange(noteList.get(i)));
-                        System.out.println(i);
                     }
                 }else {
                     Tip.setText("Not such field");
@@ -350,14 +360,13 @@ public class meauController extends ClassLoader implements Initializable {
     @FXML
     void searchNote(ActionEvent event) {
         search(Find.getText());
-        System.out.println("点击按钮");
     }
 
     @FXML
     void refresh(ActionEvent event) {
         date.clear();
         for (int i = 0; i < noteList.size(); i++) {
-            noteList = notedaoimpl.getAllnote(connection);
+            noteList = noteserver.getAllnote(connection);
             noteDate n = noteChange((Note) noteList.get(i));//将note中的数据读进notedate中
 
             date.add(n);

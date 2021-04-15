@@ -1,9 +1,10 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.dao.Dao.ConnectDao;
-import com.caiyanjia.notes.dao.Impl.administratorDaoImpl;
-import com.caiyanjia.notes.dao.Impl.userDaoImpl;
+import com.caiyanjia.notes.service.loginServer;
+import com.caiyanjia.notes.service.noteServer;
 import com.caiyanjia.notes.util.JDBCUtils;
+import com.caiyanjia.notes.view.Meau;
+import com.caiyanjia.notes.view.Register1;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,7 +17,6 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class loginController implements Initializable{
@@ -38,30 +38,6 @@ public class loginController implements Initializable{
     private Label tip;
 
 
-
-
-
-    //构造器创建一个窗口
-//    public loginController(){
-        //创建一个舞台
-//        thisStage = new Stage();
-//        try {
-//            //将fxml的文件读取
-//            FXMLLoader loader = new FXMLLoader(getClass().getResource("lodin.fxml"));
-//            //
-////            loader.setController(this);
-//            //将窗口加载进舞台
-//            thisStage.setScene(new Scene(loader.load()));
-//
-//
-//        }catch(IOException e){
-//            e.printStackTrace();
-//        }
-
-
-
-
-    //登录按钮的作用
     @FXML
     public void onButtonClick(ActionEvent event) throws Exception {
         if(id.getText().isEmpty()){
@@ -75,64 +51,16 @@ public class loginController implements Initializable{
         }else{
             pw_mistake.setText("");
         }
+        loginServer loginserver = new loginServer();
 
-
-        ifLogin();
-        //登录键的跳转
-//        if(ifLogin()){
-//
-//            //将用户id保存到connect中
-//            ConnectDao connectDao = new ConnectDao();
-//            Connection conn = JDBCUtils.getConnection();
-//            connectDao.insert(conn,id.getText());
-//            if(conn!= null)
-//            conn.close();
-//
-//
-//            //跳转页面
-//            tomeau();
-//
-//        }else {
-//            tip.setText("id or password isn't correct");
-//
-//        }
-    }
-
-    /**
-     * 判断是否登录成功的方法
-     * @return  登录成功返回true，否则返回false
-     *
-     */
-    public Boolean ifLogin() throws Exception {
-        Connection connection = JDBCUtils.getConnection();
-
-        userDaoImpl userDao = new userDaoImpl();
-        administratorDaoImpl administratordao = new administratorDaoImpl();
-        if(administratordao.ifLodin(connection,id.getText(),password.getText())){
-            //登录成功跳转到管理员页面
-            new Administrator().start(new Stage());
-            return true;
-        }
-
-        if(userDao.getLodinUser(connection,id.getText(),password.getText()) != null){
-            ConnectDao connectDao = new ConnectDao();
-            Connection conn = JDBCUtils.getConnection();
-            connectDao.insert(conn,id.getText());
-            if(conn!= null)
-                conn.close();
-
-
-            //跳转页面
+        if(loginserver.ifLogin(id.getText(),password.getText())){
             tomeau();
-
-            return true;
         }else{
-            tip.setText("id or password isn't correct");
-            return false;
+            tip.setText("账号或密码错误");
         }
-
-
     }
+
+
 
 
     /**
@@ -171,7 +99,7 @@ public class loginController implements Initializable{
             primaryStage.hide();
             //加载注册窗口
             try {
-                new Meau().start(primaryStage);
+                new Meau(id.getText()).start(primaryStage);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -180,18 +108,12 @@ public class loginController implements Initializable{
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
+        noteServer noteserver = new noteServer();
+        Connection conn = JDBCUtils.getConnection();
+        if(noteserver.getroot(conn,"知识库")!=null){
+            noteserver.insert(conn,"知识库","0");
+        }
     }
-
-//    public void setApp(registerController application){
-//        this.application = application;
-//    }
-
-
-//    @FXML
-//    private void OUT_M(ActionEvent event) {
-//        application.useroutmain();
-//    }
 
 
 }

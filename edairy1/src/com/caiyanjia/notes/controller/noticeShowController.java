@@ -1,5 +1,6 @@
 package com.caiyanjia.notes.controller;
 
+import com.caiyanjia.notes.dao.Impl.administratorDaoImpl;
 import com.caiyanjia.notes.dao.Impl.noticeDaoImpl;
 import com.caiyanjia.notes.util.JDBCUtils;
 import javafx.fxml.FXML;
@@ -14,13 +15,14 @@ public class noticeShowController implements Initializable {
     @FXML
     private TextArea notice_show;
 
-    noticeDaoImpl noticeDao = new noticeDaoImpl();
+//    noticeDaoImpl noticeDao = new noticeDaoImpl();
     Connection conn = JDBCUtils.getConnection();
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        notice_show.setText(noticeDao.getNotice(conn));
+        notice_show.setText(new administratorDaoImpl().getNotice(conn,"Admin"));
         notice_show.setEditable(false);
     }
 }

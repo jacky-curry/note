@@ -143,7 +143,7 @@ public abstract class BaseDAO {
 	}
 
 //用于查询一些特殊值的通用方法
-	public <E> E getValue(Connection conn, String sql, Object... args) {
+	public static <E> E getValue(Connection conn, String sql, Object... args) {
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		try {

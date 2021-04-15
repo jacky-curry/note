@@ -1,6 +1,6 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.bean.Note;
+import com.caiyanjia.notes.entity.Note;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 

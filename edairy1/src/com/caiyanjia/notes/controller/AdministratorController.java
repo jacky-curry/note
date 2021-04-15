@@ -1,14 +1,9 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.bean.Connect;
-import com.caiyanjia.notes.bean.Note;
-import com.caiyanjia.notes.bean.User;
-import com.caiyanjia.notes.dao.Dao.noticeDao;
-import com.caiyanjia.notes.dao.Impl.administratorDaoImpl;
-import com.caiyanjia.notes.dao.Impl.noticeDaoImpl;
-import com.caiyanjia.notes.dao.Impl.userDaoImpl;
+import com.caiyanjia.notes.entity.User;
+import com.caiyanjia.notes.service.administratorServer;
 import com.caiyanjia.notes.util.JDBCUtils;
-import javafx.application.Application;
+import com.caiyanjia.notes.view.userDate;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -56,8 +51,7 @@ public class AdministratorController implements Initializable {
 
 
     Connection conn = JDBCUtils.getConnection();
-    noticeDaoImpl noticeDao = new noticeDaoImpl();
-
+    administratorServer adminServer = new administratorServer();
     public AdministratorController() {
     }
 
@@ -65,38 +59,28 @@ public class AdministratorController implements Initializable {
     void notice_submit(ActionEvent event) {
 
         if(notice.getText() != null){
-
-            noticeDao.insert(conn,notice.getText());
-
+            adminServer.insertNotice(conn,notice.getText());
         }
-
     }
 
 
     userDate userdate = new userDate();
-    userDaoImpl userdaoimpl = new userDaoImpl();
-    List userList = userdaoimpl.getAllUser(conn);
+    List userList = adminServer.getAllUser(conn);
     final ObservableList<userDate> date = FXCollections.observableArrayList();
-    administratorDaoImpl adimpl = new administratorDaoImpl();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
         user_date.setEditable(true);
-        notice.setText(noticeDao.getNotice(conn));
+        notice.setText(adminServer.getNotice(conn));
         ObservableList<TableColumn<userDate, ?>> observableList = user_date.getColumns();
         observableList.get(0).setCellValueFactory(new PropertyValueFactory("id"));
         observableList.get(1).setCellValueFactory(new PropertyValueFactory("name"));
         observableList.get(3).setCellValueFactory(new PropertyValueFactory("black"));
         user_date.setItems(date);
-//
         for (int i = 0; i < userList.size(); i++) {
             userdate = userdate.userChange((User) userList.get(i));
             date.add(userdate);
         }
-
-
-
-
 
 
         blackList.setCellFactory((col)-> {
@@ -111,10 +95,7 @@ public class AdministratorController implements Initializable {
                                                     Boolean old_val, Boolean new_val) {
                                     //得获取该行user_id并且传入checkbox的值
                                     userDate currentUser = date.get(getIndex());
-                                    adimpl.blackList(conn,new_val,currentUser.getId());
-
-
-                                    System.out.println(user_date.getSelectionModel().getSelectedCells());
+                                    adminServer.blackList(conn,new_val,currentUser.getId());
                                 }
                             });
 
@@ -148,8 +129,7 @@ public class AdministratorController implements Initializable {
                                 userDate currentUser = date.get(getIndex());
                                 //需要获得一个用户的user_id 并根据该用户去查找笔记还有分组
 
-                                adimpl.set_user(conn,currentUser.getId());
-
+                                adminServer.setUser(currentUser.getId());
 
                                 FXMLLoader loader = new FXMLLoader(getClass().getResource("../view/userNoteShow.fxml"));
                                 //只能查看，不能修改
@@ -160,8 +140,6 @@ public class AdministratorController implements Initializable {
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-
-
 
                             });
 
@@ -181,7 +159,7 @@ public class AdministratorController implements Initializable {
 
     }
 
-    private Initializable replaceSceneContent(String fxml) throws Exception {
+    private void replaceSceneContent(String fxml) throws Exception {
         FXMLLoader loader = new FXMLLoader();
         InputStream in = registerController.class.getResourceAsStream(fxml);
         loader.setBuilderFactory(new JavaFXBuilderFactory());
@@ -197,7 +175,7 @@ public class AdministratorController implements Initializable {
         stage.setScene(scene);
         stage.sizeToScene();
         stage.show();
-        return (Initializable) loader.getController();
+        loader.getController();
     }
 
     }

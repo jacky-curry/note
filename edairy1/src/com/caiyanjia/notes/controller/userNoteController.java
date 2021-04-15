@@ -1,12 +1,11 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.bean.Note;
-import com.caiyanjia.notes.dao.Dao.ConnectDao;
-import com.caiyanjia.notes.dao.Impl.administratorDaoImpl;
+import com.caiyanjia.notes.entity.Note;
 import com.caiyanjia.notes.dao.Impl.groupDaoImpl;
-import com.caiyanjia.notes.dao.Impl.noteDaoImpl;
+import com.caiyanjia.notes.service.administratorServer;
+import com.caiyanjia.notes.service.noteServer;
 import com.caiyanjia.notes.util.JDBCUtils;
-import javafx.application.Application;
+import com.caiyanjia.notes.view.ViewOnly;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -14,23 +13,17 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
-import javax.swing.text.View;
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -90,14 +83,12 @@ public class userNoteController implements Initializable {
 
     TreeItem<String> root = new TreeItem<String>("根目录");
     TreeView<String> treeView = new TreeView<String>(root);
-    noteDaoImpl notedaoimpl = new noteDaoImpl();
+    noteServer noteserver = new noteServer();
     Connection conn = JDBCUtils.getConnection();
-    ConnectDao connectdao = new ConnectDao();
-    administratorDaoImpl administratorDao = new administratorDaoImpl();
-    String user_id = administratorDao.get_user(conn);//这个根据上一个界面获取的user_id决定
-    groupDaoImpl groupdaoimpl = new groupDaoImpl();
+    administratorServer adminServer = new administratorServer();
+    String user_id =  adminServer.getUser();//这个根据上一个界面获取的user_id决定
     final String[] oldName = {null};
-    List<Note> noteList = notedaoimpl.getIdNote(conn, user_id);
+    List<Note> noteList = noteServer.getNoteById(conn, user_id);
 
 
     @Override
@@ -177,16 +168,13 @@ public class userNoteController implements Initializable {
             final ObservableList<noteDate> groupDate
                     = FXCollections.observableArrayList();
 
-            List<Note> notefromgroup = notedaoimpl.getNoteFromGroup(conn,oldName[0],user_id);
-//            List<noteDate> groupList = new ArrayList<>();
+            List<Note> notefromgroup = noteServer.getNoteGroupByForm(conn,oldName[0],user_id);
 
             for (int i = 0; i < notefromgroup.size(); i++) {
-//                date.clear();
                 //将小组中的数据加载进来，并显式
                 date.add(i, getNoteDate(notefromgroup.get(i)));
                 date.remove(notefromgroup.size(),date.size());
             }
-//            myTable.setItems(groupDate);
 
 
             myTable.refresh();
@@ -217,7 +205,6 @@ public class userNoteController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends TreeItem<String>> observableValue, TreeItem<String> oldItem, TreeItem<String> newItem) {
                 oldName[0] = newItem.getValue();
-                System.out.println(oldName[0]);
             }
         });
 
@@ -242,37 +229,39 @@ public class userNoteController implements Initializable {
         //设置默认数据中已有的分组
         List<Note> labelList = new ArrayList<>();
 
-        List<String> groupList = groupdaoimpl.searchGroup(conn,user_id);
-        labelList =  notedaoimpl.getNoteFromGroup(conn,"0",user_id);
-        for( int i = 0;i < labelList.size();i++){
-            TreeItem<String> node = new TreeItem<String>(labelList.get(i).getLabel());
-            root.getChildren().add(i,node);
-            Node rootIcon = new ImageView(
-                    new Image(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png")));
-            node.setGraphic(rootIcon);
-        }
+        List<String> groupList = noteserver.searchNoteFromGroup(conn,user_id,"0",1);
 
+//        labelList = noteserver.searchNoteFromGroup(conn, user_id,"null",2);
+        if(labelList != null){
 
-        for (int i = 0; i < groupList.size(); i++) {
-
-
-            TreeItem<String> parent= new TreeItem<String>(groupList.get(i));
-            root.getChildren().add(parent);
-
-            String parent_node  = parent.getValue();
-
-            labelList = notedaoimpl.getNoteFromGroup(conn,parent_node,user_id);
-
-            for(int j = 0;j < labelList.size() ; j++){
-
-                TreeItem<String> node = new TreeItem<String>(labelList.get(j).getLabel());
-                parent.getChildren().add(j,node);
+            for( int i = 0;i < labelList.size();i++){
+                TreeItem<String> node = new TreeItem<String>(labelList.get(i).getLabel());
+                root.getChildren().add(i,node);
                 Node rootIcon = new ImageView(
                         new Image(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png"))));
                 node.setGraphic(rootIcon);
+            }
+        }
+
+        if(groupList != null){
+
+            for (String s : groupList) {
+                TreeItem<String> parent = new TreeItem<String>(s);
+                root.getChildren().add(parent);
+                String parent_node = parent.getValue();
+                labelList = noteserver.searchNoteFromGroup(conn, user_id, parent_node, 3);
+                if (labelList != null) {
+
+                    for (int j = 0; j < labelList.size(); j++) {
+                        TreeItem<String> node = new TreeItem<String>(labelList.get(j).getLabel());
+                        parent.getChildren().add(j, node);
+                        Node rootIcon = new ImageView(
+                                new Image(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png"))));
+                        node.setGraphic(rootIcon);
+                    }
+                }
 
             }
-
         }
     }
 
@@ -289,25 +278,6 @@ public class userNoteController implements Initializable {
 
 
     }
-    private Initializable replaceSceneContent(String fxml) throws Exception {
-        FXMLLoader loader = new FXMLLoader();
-        InputStream in = registerController.class.getResourceAsStream(fxml);
-        loader.setBuilderFactory(new JavaFXBuilderFactory());
-        loader.setLocation(registerController.class.getResource(fxml));
-        AnchorPane page;
-        try {
-            page = (AnchorPane) loader.load(in);
-        } finally {
-            in.close();
-        }
-        Scene scene = new Scene(page);
-        Stage stage = new Stage();
-        stage.setScene(scene);
-        stage.sizeToScene();
-        stage.show();
-        return (Initializable) loader.getController();
-    }
-
 }
 
 

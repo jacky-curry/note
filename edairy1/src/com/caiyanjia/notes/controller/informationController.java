@@ -1,10 +1,10 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.bean.Connect;
-import com.caiyanjia.notes.bean.User;
-import com.caiyanjia.notes.dao.Dao.ConnectDao;
-import com.caiyanjia.notes.dao.Impl.userDaoImpl;
+import com.caiyanjia.notes.bean.Msg;
+import com.caiyanjia.notes.entity.User;
+import com.caiyanjia.notes.service.userServer;
 import com.caiyanjia.notes.util.JDBCUtils;
+import com.caiyanjia.notes.view.Meau;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -15,8 +15,6 @@ import javafx.stage.Stage;
 
 import java.net.URL;
 import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ConcurrentModificationException;
 import java.util.ResourceBundle;
 
 public class informationController implements Initializable {
@@ -56,13 +54,13 @@ public class informationController implements Initializable {
         new Meau().start(stage);
 
     }
-
+    private final String user_id = Msg.getUser_id();
+    userServer userserver = new userServer();
+    Connection connection = JDBCUtils.getConnection();
 
     //将修改后的数据提交至数据库，
     @FXML
     void submit(ActionEvent event) throws Exception {
-
-        userDaoImpl userdaoimpl = new userDaoImpl();
         User user = new User();
         if (ifidNUll() & ifNameNUll() & ifPasswordNUll()) {
 
@@ -71,7 +69,7 @@ public class informationController implements Initializable {
             user.setPassword(password.getText());
             Connection conn = JDBCUtils.getConnection();
 
-            userdaoimpl.update(conn, user);
+            userserver.savaImformation(conn,user);
             if (conn != null) {
                 conn.close();
             }
@@ -116,15 +114,13 @@ public class informationController implements Initializable {
 
 
 
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        userDaoImpl userdaoimpl = new userDaoImpl();
-        Connection connection = JDBCUtils.getConnection();
 
-        ConnectDao connect = new ConnectDao();
 
-        User user = userdaoimpl.judgeUser(connection,connect.getId(connection));
 
+        User user = userserver.getUser(connection,user_id);
         id.setEditable(true);
         password.setEditable(true);
         name.setEditable(true);
@@ -137,8 +133,5 @@ public class informationController implements Initializable {
         password.setText(pw);
         name.setText(n);
         id.setEditable(false);
-
-
-
     }
 }

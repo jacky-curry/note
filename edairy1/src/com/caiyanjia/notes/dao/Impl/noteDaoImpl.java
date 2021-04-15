@@ -1,17 +1,15 @@
 package com.caiyanjia.notes.dao.Impl;
 
-import com.caiyanjia.notes.bean.Note;
+import com.caiyanjia.notes.entity.Note;
 import com.caiyanjia.notes.dao.Dao.BaseDAO;
 import com.caiyanjia.notes.dao.Dao.noteDao;
-import javafx.scene.control.TreeItem;
-import org.omg.CORBA.NO_IMPLEMENT;
+import com.caiyanjia.notes.util.JDBCUtils;
+import org.junit.Test;
 
-import javax.swing.*;
-import javax.xml.soap.Node;
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 
 public class noteDaoImpl extends BaseDAO implements noteDao {
@@ -20,24 +18,28 @@ public class noteDaoImpl extends BaseDAO implements noteDao {
 
 
 	@Override
-	public void noteInsert(Connection conn, String label, String author, String content, Date date ,Boolean permission,String user_id) {
-		String sqlString = "insert into note(label,author,content,date,permission,user_id) values(?,?,?,?,?,?)";
+	public Boolean noteInsert(Connection conn, String label, String author, String content, Date date ,Boolean permission,String user_id) {
+		String sqlString = "insert into note(label,author,content,date,permission,user_id ) values(?,?,?,?,?,?)";
 				
 		if(Update(conn, sqlString, label,author,content,date,permission,user_id) > 0) {
 			System.out.println("添加笔记成功");
+			return  true;
 		}else {
 			System.out.println("添加失败");
+			return false;
 		}
 		
 	}
 
 	@Override
-	public void noteDelete(Connection conn, String label,String user_id) {
+	public Boolean noteDelete(Connection conn, String label,String user_id) {
 		String sqlString = "delete from note  where label = ? and user_id = ?";
 		if(Update(conn, sqlString, label,user_id)>0) {
 			System.out.println("删除成功");
+			return true;
 		}else {
 			System.out.println("删除失败");
+			return  false;
 		}
 			
 		
@@ -86,8 +88,11 @@ public class noteDaoImpl extends BaseDAO implements noteDao {
 
 	@Override
 	public void setGroup(Connection conn, String label, String group) {
-		String sql = "Update note set parent_node = ? where label = ? ";
-		if(Update(conn,sql,group,label)>0){
+		String sql1 = "select id  from `group` where `name` = ?";
+		int group_id = getValue(conn,sql1,group);
+
+		String sql = "Update note set group_id = ? where label = ? ";
+		if(Update(conn,sql,group_id,label)>0){
 			System.out.println("设置分组成功");
 		}else{
 			System.out.println("设置分组失败");
@@ -95,43 +100,66 @@ public class noteDaoImpl extends BaseDAO implements noteDao {
 	}
 
 	@Override
-	public void noteUpdateAll(Connection conn, Note note,String oldlabel,String user_id) {
+	public Boolean noteUpdateAll(Connection conn, Note note,String oldlabel,String user_id) {
 		String sql = "Update note set label = ?,content = ?,permission = ?,author = ?,`date` = ? where label = ? and user_id = ?";
-		Update(conn,sql,note.getLabel(),note.getContent(), note.isPermission(),note.getAuthor(),note.getDate(),oldlabel,user_id);
+		if(Update(conn,sql,note.getLabel(),note.getContent(), note.isPermission(),note.getAuthor(),note.getDate(),oldlabel,user_id)>0){
+			return true;
+		}else {
+			return  false;
+		}
 	}
 
 	/**
 	 *获得笔记的默认分组
 	 */
 
-	public String getGroup(Connection conn,String label,String user_id){
-		String sql = "select `parent_node` from note where label = ? and user_id = ?";
-		return getValue(conn,sql,label,user_id);
+	public <E> Object getGroup(Connection conn, String label, String user_id){
+
+
+		String sql = "select `group_id` from note where label = ? and user_id = ?";
+		if(getValue(conn,sql,label,user_id)!= null){
+			Integer group_id = getValue(conn,sql,label,user_id);
+			String sql1 ="select `name` from `group` where id = ?";
+			return getValue(conn,sql1,group_id);
+		}
+		return null;
 
 	}
 
-	public List<Note> getNoteFromGroup(Connection conn, String group , String user_id){
-		String sql = "select * from note where parent_node = ? and user_id = ?";
+	public List<Note> getNoteFromGroup(Connection conn, String group_name , String user_id){
+		String sql = "select * from note where group_id = ? and user_id = ?";
 
-		List<Note> noteList = getForList(conn,Note.class,sql,group,user_id);
-//		List<String> stringList = new ArrayList<>();
-//		assert noteList != null;
-//			for (int i = 0; i < noteList.size(); i++) {
-//				stringList.set(i,noteList.get(i).getLabel());
-//			}
+		String sql1 = "select `id` from `group` where `name` = ?";
+		Integer group_id = 0;
+		//第一种有名字的
+		if(getValue(conn,sql1,group_name)!=null){
+			 group_id = getValue(conn,sql1,group_name);
+			return getForList(conn,Note.class,sql,group_id,user_id);
+		}
 
-		return noteList;
+		String sql2 = "select id from `group` where `name` = ?";
+		Integer root = getValue(conn,sql2,"知识库");
+
+
+		return getForList(conn,Note.class,sql,root,user_id);
 	}
 
 
-	public void deleteGroup(Connection conn,String oldGroup,String user_id){
-		String sql = "Update note set parent_node = ? where parent_node = ? and user_id = ?";
-		Update(conn,sql,"0",oldGroup,user_id);
+	public Boolean deleteGroup(Connection conn,String oldGroup,String user_id){
+		String sql1 = "select id where name = ?";
+		int groupId  = getValue(conn,sql1,oldGroup);
 
+		String sql = "Update note set parent_node = ? where id = ? and user_id = ?";
+		if(Update(conn,sql,"0",groupId,user_id) >0 ){
+			return true;
+		}else{
+			return false;
+		}
 
 	}
+//*******************以上是分组************
 
-
+//********************以下是查询*************
 	public List<Note> searchByLabel(Connection conn, String label){
 		String sql  = "select * from note where label = ?";
 		return getForList(conn,Note.class,sql,label);

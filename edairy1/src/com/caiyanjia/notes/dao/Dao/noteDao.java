@@ -1,7 +1,6 @@
 package com.caiyanjia.notes.dao.Dao;
 
-import com.caiyanjia.notes.bean.Note;
-import com.caiyanjia.notes.controller.noteDate;
+import com.caiyanjia.notes.entity.Note;
 
 import java.sql.Connection;
 import java.util.Date;
@@ -18,9 +17,9 @@ public interface noteDao {
 	 * @author author	
 	 * @date 2021-03-28 11:16:43
 	 */
-	public void noteInsert(Connection conn, String label, String author, String content, Date date,Boolean promisstion,String user_id);
+	public Boolean noteInsert(Connection conn, String label, String author, String content, Date date,Boolean promisstion,String user_id);
 	
-	public void noteDelete(Connection conn, String label,String user_id);
+	public Boolean noteDelete(Connection conn, String label,String user_id);
 	/**
 	 * 
 	 * @Title: noteSearch
@@ -68,7 +67,7 @@ public interface noteDao {
 	public void setGroup(Connection conn,String label,String group);
 
 
-	public void noteUpdateAll(Connection conn,Note note,String oldlabel,String user_id);
+	public Boolean noteUpdateAll(Connection conn,Note note,String oldlabel,String user_id);
 
 
 	/**
@@ -77,7 +76,7 @@ public interface noteDao {
 	 * @param oldGroup
 	 * @param user_id
 	 */
-	public void deleteGroup(Connection conn,String oldGroup,String user_id);
+	public Boolean deleteGroup(Connection conn,String oldGroup,String user_id);
 
 	/**
 	 * 通过label进行查询

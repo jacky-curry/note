@@ -1,6 +1,6 @@
 package com.caiyanjia.notes.dao.Impl;
 
-import com.caiyanjia.notes.bean.Administrator;
+import com.caiyanjia.notes.entity.Administrator;
 import com.caiyanjia.notes.dao.Dao.BaseDAO;
 import com.caiyanjia.notes.dao.Dao.administratorDao;
 
@@ -56,8 +56,11 @@ public class administratorDaoImpl extends BaseDAO implements administratorDao {
         }else{
             return false;
         }
+    }
 
-
+    public String getNotice(Connection conn,String ad_id){
+        String sql = "select notice from administrator where id = ?";
+        return getValue(conn,sql,ad_id);
     }
 
 

@@ -1,6 +1,6 @@
 package com.caiyanjia.notes.dao.Impl;
 
-import com.caiyanjia.notes.bean.Group;
+import com.caiyanjia.notes.entity.Group;
 import com.caiyanjia.notes.dao.Dao.BaseDAO;
 import com.caiyanjia.notes.dao.Dao.groupDao;
 
@@ -50,12 +50,32 @@ public class groupDaoImpl extends BaseDAO implements groupDao {
 
 
     public Boolean deleteGroup(Connection conn,String oldgGroup,String user_id){
+        String sql2 = "select id from `group` where name = ? and user_id = ?";
+        Integer group_id = getValue(conn, sql2,oldgGroup,user_id);
+
+        String sql3 =  "select id from `group` where name = ?";
+        Integer root = getValue(conn,sql3,"知识库");
         String sql = "delete  from `group` where `name` = ? and user_id = ?";
-         if(Update(conn,sql,oldgGroup,user_id)>0 ){
-             return true;
-         }else{
-             return  false;
-         }
+        String sql4 = "select id from note where group_id = ?";
+        if(getValue(conn,sql4,group_id)!= null){
+
+            String sql1 = "Update note set group_id = ? where user_id = ? and group_id = ?";
+            if(Update(conn,sql1,root,user_id,group_id)>0){
+
+                if(Update(conn,sql,oldgGroup,user_id)>0 ){
+                    return true;
+                }else{
+                    return  false;
+                }
+            }else{
+                return false;
+            }
+        }else{
+            Update(conn,sql,oldgGroup,user_id);
+            return true;
+        }
+
+
 
     }
 

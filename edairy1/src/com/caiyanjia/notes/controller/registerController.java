@@ -1,26 +1,17 @@
 package com.caiyanjia.notes.controller;
 
 
-import com.caiyanjia.notes.bean.User;
-import com.caiyanjia.notes.dao.Impl.userDaoImpl;
-import com.caiyanjia.notes.util.JDBCUtils;
-import javafx.application.Application;
+import com.caiyanjia.notes.entity.User;
+import com.caiyanjia.notes.service.registerServer;
+import com.caiyanjia.notes.view.Lodin;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.fxml.JavaFXBuilderFactory;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +36,7 @@ public class registerController implements Initializable {
 
     private Stage stage = new Stage();
 
+    registerServer registerserver = new registerServer();
 
     //rutrn_login 返回主界面
     @FXML
@@ -58,51 +50,40 @@ public class registerController implements Initializable {
     public void submit(ActionEvent actionEvent) throws Exception {
 
 
+
         //这里有bug，会出现短路问题，解决办法用&，|就可以了
 
+        if(ifIdisNUll()&ifNameISNotNull()&IfPasswordEqual()){
 
-        if(ifIdExist()&ifNameISNotNull()&IfPasswordEqual()){
-            userDaoImpl userdaoimpl = new userDaoImpl();
-            User user = new User();
-            user.setId(rg_id.getText());
-            user.setPassword(rg_password1.getText());
-            user.setName(rg_name.getText());
-            Connection conn  = JDBCUtils.getConnection();
-            userdaoimpl.insert(conn,user);
-            conn.close();
+            if(registerserver.ifIdExist(rg_id.getText())){
 
-            alert(actionEvent);
+                User user = new User();
+                user.setId(rg_id.getText());
+                user.setPassword(rg_password1.getText());
+                user.setName(rg_name.getText());
+                if(registerserver.insertUser(user)){
+                    alert(actionEvent);
+                }
+            }else{
+                id_mistake.setText("Id has already existed");
+            }
+
+
         }
 
 
     }
-//***********************************************************************
 
-    /**
-     * 判断Id是否存在
-     * @return 数据库中存在即返回false，不存在返回true,如果没有输入，则也返回false
-     */
-    public Boolean ifIdExist() throws SQLException {
+    public Boolean ifIdisNUll(){
+        if(rg_id.getText()!=null){
+            return true;
 
-        if(!rg_id.getText().isEmpty()){
-            id_mistake.setText("");
-            Connection connection = JDBCUtils.getConnection();
-            userDaoImpl userdaoimpl = new userDaoImpl();
-
-            User getuser = userdaoimpl.judgeUser(connection,rg_id.getText() );
-            connection.close();
-            if(getuser != null){
-                id_mistake.setText("Id has existed");
-                return false;
-            }else{
-                return true;
-            }
         }else{
-            id_mistake.setText("The Id cannot be empty");
+            id_mistake.setText("The password cannot be empty");
             return false;
         }
-
     }
+
 
     /**
      * 判断密码输入是否相同,且不为空
@@ -141,7 +122,6 @@ public class registerController implements Initializable {
 
     public void gotologin(){
         try {
-//            replaceSceneContent("com/caiyanjia/notes/view/lodin.fxml");
             new Lodin().start(new Stage());
             Stage primaryStage = (Stage) r_login.getScene().getWindow();
             primaryStage.hide();
@@ -149,39 +129,8 @@ public class registerController implements Initializable {
             Logger.getLogger(registerController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-//    public void gotomain(){
-//        try {
-//            MainController main = (MainController) replaceSceneContent("FXML_MAIN.fxml");
-//            main.setApp(this);
-//        } catch (Exception ex) {
-//            Logger.getLogger(FXMLTest.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
-//    public void userlogin(String account,String password){
-//        if(Check.checkreturn(account,password)){
-//            gotomain();
-//        }
-//    }
 
 
-
-    private Initializable replaceSceneContent(String fxml) throws Exception {
-        FXMLLoader loader = new FXMLLoader();
-        InputStream in = registerController.class.getResourceAsStream(fxml);
-        loader.setBuilderFactory(new JavaFXBuilderFactory());
-        loader.setLocation(registerController.class.getResource(fxml));
-        AnchorPane page;
-        try {
-            page = (AnchorPane) loader.load(in);
-        } finally {
-            in.close();
-        }
-        Scene scene = new Scene(page);
-        stage.setScene(scene);
-        stage.sizeToScene();
-        stage.show();
-        return (Initializable) loader.getController();
-    }
 
     public void alert(ActionEvent event) throws IOException {
         String info="registered successfully";

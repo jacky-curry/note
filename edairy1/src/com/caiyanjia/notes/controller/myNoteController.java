@@ -1,11 +1,12 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.bean.Group;
-import com.caiyanjia.notes.bean.Note;
-import com.caiyanjia.notes.dao.Dao.ConnectDao;
-import com.caiyanjia.notes.dao.Impl.groupDaoImpl;
-import com.caiyanjia.notes.dao.Impl.noteDaoImpl;
+import com.caiyanjia.notes.bean.Msg;
+import com.caiyanjia.notes.entity.Group;
+import com.caiyanjia.notes.entity.Note;
+import com.caiyanjia.notes.service.noteServer;
 import com.caiyanjia.notes.util.JDBCUtils;
+import com.caiyanjia.notes.view.Meau;
+import com.caiyanjia.notes.view.editNote;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -13,22 +14,17 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTreeCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -80,33 +76,29 @@ public class myNoteController implements Initializable {
 
     @FXML
     void refresh(ActionEvent event) {//显式所有分组的数据
-        if(myTable.getItems().size() != noteList.size()){
-        for (int i = 0; i < noteList.size(); i++) {
-            date.add(i, getNoteDate(noteList.get(i)));
-        }
+        if (myTable.getItems().size() != noteList.size()) {
+            for (int i = 0; i < noteList.size(); i++) {
+                date.add(i, getNoteDate(noteList.get(i)));
+            }
 
             myTable.setItems(date);
         }
     }
 
 
-
+    private final String user_id = Msg.getUser_id();//用一个全局变量来存储user_id
     final ObservableList<noteDate> date
             = FXCollections.observableArrayList();
-
     TreeItem<String> root = new TreeItem<String>("知识库");
     TreeView<String> treeView = new TreeView<String>(root);
-    noteDaoImpl notedaoimpl = new noteDaoImpl();
     Connection conn = JDBCUtils.getConnection();
-    ConnectDao connectdao = new ConnectDao();
-    String user_id = connectdao.getId(conn);
-    groupDaoImpl groupdaoimpl = new groupDaoImpl();
     final String[] oldName = {null};
-    List<Note> noteList = notedaoimpl.getIdNote(conn, connectdao.getId(conn));
+    noteServer noteserver = new noteServer();
+    List<Note> noteList = noteserver.getIdNote(conn,user_id);
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
 
         author.setCellValueFactory(new PropertyValueFactory<noteDate, String>("author"));
         title.setCellValueFactory(new PropertyValueFactory<noteDate, String>("title"));
@@ -114,15 +106,6 @@ public class myNoteController implements Initializable {
         content.setCellValueFactory(new PropertyValueFactory<noteDate, String>("content"));
         like.setCellValueFactory(new PropertyValueFactory<noteDate, Integer>("like"));
 
-
-
-
-
-        for (int i = 0; i < noteList.size(); i++) {
-            date.add(i, getNoteDate(noteList.get(i)));
-        }
-
-        myTable.setItems(date);
 
         delete.setCellFactory((col) -> {
 
@@ -138,9 +121,8 @@ public class myNoteController implements Initializable {
 
                                 //获取list列表中的位置，进而获取列表对应的信息数据
                                 noteDate noteLoad = (noteDate) date.get(getIndex());
-                                notedaoimpl.noteDelete(conn,noteLoad.getTitle(),user_id);
+                                noteserver.deleteNote(conn, noteLoad.getTitle(), user_id);
                                 date.remove(date.get(getIndex()));
-
                             });
 
                             if (empty) {
@@ -172,13 +154,10 @@ public class myNoteController implements Initializable {
                                 //获取list列表中的位置，进而获取列表对应的信息数据
                                 noteDate noteLoad = (noteDate) date.get(getIndex());
 
-                                System.out.println(noteLoad);
-                                System.out.println(noteLoad.getAuthor());
-                                FXMLLoader loader = new FXMLLoader(getClass().getResource("../view/editNote.fxml"));
                                 //获取该行信息，
                                 try {
-                                    AnchorPane login = (AnchorPane) loader.load();
-                                    replaceSceneContent("../view/editNote.fxml");
+                                    new editNote().start(new Stage());
+
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -202,12 +181,18 @@ public class myNoteController implements Initializable {
                 }
         );
 
+        for (int i = 0; i < noteList.size(); i++) {
+            date.add(i, getNoteDate(noteList.get(i)));
+        }
+
+        myTable.setItems(date);
+
+
         //****************************以下是分组*****************
 
 
         root.setExpanded(true);
         box.getChildren().add(treeView);
-
 
 
         //***设置右键内容
@@ -224,36 +209,30 @@ public class myNoteController implements Initializable {
 
         MenuItem deleteItem = new MenuItem("删除分组");
         deleteItem.setOnAction(e -> {
-                //在group表中找到当前的分组，并删除，之后返回是否删除成功
-                    oldName[0] = treeView.getSelectionModel().getSelectedItems().get(0).getValue();
-                    if(groupdaoimpl.deleteGroup(conn,oldName[0],user_id)) {
-                        //如果分组删除成功的话，在note表里的该组设置为默认0
-                        notedaoimpl.deleteGroup(conn, oldName[0], user_id);
-                        System.out.println("删除分组成功");
-                        //没法刷新啊
-
-                    }
-
-
-
+            //在group表中找到当前的分组，并删除，之后返回是否删除成功
+            oldName[0] = treeView.getSelectionModel().getSelectedItems().get(0).getValue();
+            if (noteserver.deleteGroup(conn, oldName[0], user_id)) {
+                alert(e);
+            }
         });
+
 
         MenuItem searchItem = new MenuItem("查看分组中笔记");
         searchItem.setOnAction(e -> {
-            System.out.println("进入查看");
+//            System.out.println("进入查看");
             //新建一个数据源，包含当前组的所有数组，并且添加到tableview中
             final ObservableList<noteDate> groupDate
                     = FXCollections.observableArrayList();
 
-            List<Note> notefromgroup = notedaoimpl.getNoteFromGroup(conn,oldName[0],user_id);
+            List<Note> notefromgroup = noteserver.getNoteFromGroup(conn, oldName[0], user_id);
+            if (notefromgroup != null) {
 
-            for (int i = 0; i < notefromgroup.size(); i++) {
-//                date.clear();
-                //将小组中的数据加载进来，并显式
-                date.add(i, getNoteDate(notefromgroup.get(i)));
-                date.remove(notefromgroup.size(),date.size());
+                for (int i = 0; i < notefromgroup.size(); i++) {
+                    //将小组中的数据加载进来，并显式
+                    date.add(i, getNoteDate(notefromgroup.get(i)));
+                    date.remove(notefromgroup.size(), date.size());
+                }
             }
-
             myTable.refresh();
         });
 
@@ -284,127 +263,98 @@ public class myNoteController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends TreeItem<String>> observableValue, TreeItem<String> oldItem, TreeItem<String> newItem) {
                 oldName[0] = newItem.getValue();
-                System.out.println(oldName[0]);
             }
         });
 
-        //在改变分组名字后，对group中的数据进行修改,同时应该得对note中得分组也修改
+        //在改变分组名字后，对group中的数据进行修改
         root.addEventHandler(TreeItem.<String>valueChangedEvent(), new EventHandler<TreeItem.TreeModificationEvent<String>>() {
             @Override
             public void handle(TreeItem.TreeModificationEvent<String> event) {
-                groupDaoImpl groupdaoimpl = new groupDaoImpl();
-                groupdaoimpl.changName(conn,oldName[0],event.getNewValue());
-
-
+                noteserver.updateGroupName(conn, oldName[0], event.getNewValue());
             }
         });
-
 
 
         //设置分组中的笔记
         initGroup();
 
 
-
-
-
     }
-    public void initGroup(){
+
+    public void initGroup() {
         //设置默认数据中已有的分组
         List<Note> labelList = new ArrayList<>();
 
-        List<String> groupList = groupdaoimpl.searchGroup(conn,user_id);
-        labelList =  notedaoimpl.getNoteFromGroup(conn,"0",user_id);
-        for( int i = 0;i < labelList.size();i++){
-            TreeItem<String> node = new TreeItem<String>(labelList.get(i).getLabel());
-            root.getChildren().add(i,node);
-            Node rootIcon = new ImageView(
-                    new Image(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png")));
-            node.setGraphic(rootIcon);
-        }
+        List<String> groupList = noteserver.searchNoteFromGroup(conn, user_id, "0", 1);
 
+        labelList = noteserver.searchNoteFromGroup(conn, user_id,"null",2);
+        if (labelList != null) {
 
-        for (int i = 0; i < groupList.size(); i++) {
-
-
-            TreeItem<String> parent= new TreeItem<String>(groupList.get(i));
-            root.getChildren().add(parent);
-
-            String parent_node  = parent.getValue();
-
-            labelList = notedaoimpl.getNoteFromGroup(conn,parent_node,user_id);
-
-            for(int j = 0;j < labelList.size() ; j++){
-
-                TreeItem<String> node = new TreeItem<String>(labelList.get(j).getLabel());
-                parent.getChildren().add(j,node);
+            for (int i = 0; i < labelList.size(); i++) {
+                TreeItem<String> node = new TreeItem<String>(labelList.get(i).getLabel());
+                root.getChildren().add(i, node);
                 Node rootIcon = new ImageView(
                         new Image(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png"))));
                 node.setGraphic(rootIcon);
+            }
+        }
+
+        if (groupList != null) {
+
+            for (String s : groupList) {
+                TreeItem<String> parent = new TreeItem<String>(s);
+                root.getChildren().add(parent);
+                String parent_node = parent.getValue();
+                labelList = noteserver.searchNoteFromGroup(conn, user_id, parent_node, 3);
+                if (labelList != null) {
+
+                    for (int j = 0; j < labelList.size(); j++) {
+                        TreeItem<String> node = new TreeItem<String>(labelList.get(j).getLabel());
+                        parent.getChildren().add(j, node);
+                        Node rootIcon = new ImageView(
+                                new Image(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png"))));
+                        node.setGraphic(rootIcon);
+                    }
+                }
 
             }
-
         }
     }
 
-    //get
-//    private final Node rootIcon = new ImageView(
-//            new Image(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png")));
+    public void alert(ActionEvent event) {
+        String info = "删除分组成功";
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, info, new ButtonType("确定", ButtonBar.ButtonData.YES));
+        alert.setHeaderText(null);
+        alert.setTitle("提示");
+
+        alert.show();
+    }
 
 
     /**
      * 实现数据库和treview的新建功能
+     *
      * @throws InterruptedException
      */
     public void createItem() throws InterruptedException {
 
-            TreeItem<String> newItem = new TreeItem<String>();
-//        Node rootIcon = new ImageView(
-//                new Image(Thread.currentThread().getContextClassLoader().getResourceAsStream("file.png")));
-//            newItem.setGraphic(rootIcon);
-            newItem.setValue("Item " + treeView.getExpandedItemCount());
+        TreeItem<String> newItem = new TreeItem<String>();
+        newItem.setValue("Item " + treeView.getExpandedItemCount());
 
-            //加载进数据库里
-        ConnectDao connect = new ConnectDao();
+        //加载进数据库里
         Group group = new Group();
-        groupDaoImpl groupdaoimpl = new groupDaoImpl();
-        Connection  connection = JDBCUtils.getConnection();
-        group.setUser_id(connect.getId(connection));
-
-
+        group.setUser_id(user_id);
         String line = String.valueOf(treeView.getExpandedItemCount());
         group.setName("Item " + line);
+        noteserver.createGroup(conn, group);
 
-        groupdaoimpl.insertGroup(connection,group);
+        treeView.getRoot().getChildren().add(newItem);
 
-            treeView.getRoot().getChildren().add(newItem);
+        treeView.requestFocus();
 
-            treeView.requestFocus();
+        treeView.getSelectionModel().select(newItem);
 
-            treeView.getSelectionModel().select(newItem);
-
-            treeView.edit(newItem);
-    }
-
-
-    private Stage stage = new Stage();
-
-    private Initializable replaceSceneContent(String fxml) throws Exception {
-        FXMLLoader loader = new FXMLLoader();
-        InputStream in = registerController.class.getResourceAsStream(fxml);
-        loader.setBuilderFactory(new JavaFXBuilderFactory());
-        loader.setLocation(registerController.class.getResource(fxml));
-        AnchorPane page;
-        try {
-            page = (AnchorPane) loader.load(in);
-        } finally {
-            in.close();
-        }
-        Scene scene = new Scene(page);
-        stage.setScene(scene);
-        stage.sizeToScene();
-        stage.show();
-        return (Initializable) loader.getController();
+        treeView.edit(newItem);
     }
 
 
@@ -420,7 +370,6 @@ public class myNoteController implements Initializable {
         notedate.setLike(String.valueOf(note.getLike()));
         notedate.setContent(note.getContent());
         notedate.setPost_date(String.valueOf(note.getDate()));
-
         return notedate;
 
     }

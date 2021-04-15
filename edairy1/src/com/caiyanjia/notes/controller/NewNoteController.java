@@ -1,21 +1,17 @@
 package com.caiyanjia.notes.controller;
 
-import com.caiyanjia.notes.dao.Dao.ConnectDao;
-import com.caiyanjia.notes.dao.Impl.noteDaoImpl;
+import com.caiyanjia.notes.bean.Msg;
+import com.caiyanjia.notes.service.noteServer;
 import com.caiyanjia.notes.util.JDBCUtils;
+import com.caiyanjia.notes.view.Meau;
 import javafx.beans.property.BooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.fxml.JavaFXBuilderFactory;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -50,6 +46,7 @@ public class NewNoteController implements Initializable {
 
     public  static AppModel model = new AppModel();
 
+    private final String user_id = Msg.getUser_id();
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         //重写监听器，对界面中的text赋值
@@ -102,32 +99,16 @@ public class NewNoteController implements Initializable {
         }
     }
 
-    public void ifPermissionNull(){
-//        permission.selectedProperty().addListener(new ChangeListener<Boolean>() {
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
-//
-//            }
-//        });
-
-    }
-
-
-
-
-
-
     /**
      * 用于保存数据
      */
     public void saveNote() throws SQLException {
+        noteServer noteserver = new noteServer();
         BooleanProperty  booleanProperty =  permission.selectedProperty();
-        noteDaoImpl notedaoimpl = new noteDaoImpl();
         Connection connection = JDBCUtils.getConnection();
-        ConnectDao connect = new ConnectDao();
-        notedaoimpl.noteInsert(connection,lableText.getText(),authorText.getText(),contentText.getText(),
-                new Date(),!booleanProperty.get(),connect.getId(connection));
+//        ConnectDao connect = new ConnectDao();
+        noteserver.newNote(connection,lableText.getText(),authorText.getText(),contentText.getText(),
+                new Date(),!booleanProperty.get(),user_id);
         if(connection != null)
         connection.close();
 
@@ -183,36 +164,6 @@ public class NewNoteController implements Initializable {
     public static void setTitle(String text)
     {
         model.setTitle(text);
-    }
-
-
-
-
-    /**
-     * 场景切换通用方法
-     * @param fxml
-     * @return
-     * @throws Exception
-     */
-    private final Stage stage = new Stage();
-    private Initializable replaceSceneContent(String fxml) throws Exception {
-        FXMLLoader loader = new FXMLLoader();
-        InputStream in = registerController.class.getResourceAsStream(fxml);
-        loader.setBuilderFactory(new JavaFXBuilderFactory());
-        loader.setLocation(registerController.class.getResource(fxml));
-        AnchorPane page;
-        try {
-            page = (AnchorPane) loader.load(in);
-        } finally {
-            in.close();
-        }
-        Scene scene = new Scene(page);
-        stage.setScene(scene);
-        stage.sizeToScene();
-        stage.show();
-
-
-        return (Initializable) loader.getController();
     }
 
 

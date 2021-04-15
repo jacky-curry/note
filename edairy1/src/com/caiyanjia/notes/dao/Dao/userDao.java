@@ -1,6 +1,6 @@
 package com.caiyanjia.notes.dao.Dao;
 
-import com.caiyanjia.notes.bean.User;
+import com.caiyanjia.notes.entity.User;
 
 import java.sql.Connection;
 import java.util.List;
@@ -15,7 +15,7 @@ public interface userDao {
 	 * @author author
 	 * @date 2021-03-27 10:58:05
 	 */
-	public void insert(Connection conn, User user);
+	public Boolean insert(Connection conn, User user);
 	/**
 	 * 
 	 * @Title: update
@@ -25,7 +25,7 @@ public interface userDao {
 	 * @author author
 	 * @date 2021-03-27 10:58:32
 	 */
-	public void update(Connection conn, User user);
+	public Boolean update(Connection conn, User user);
 
 	/**
 	 * 

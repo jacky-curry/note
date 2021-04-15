@@ -22,7 +22,7 @@
           <children>
               <Button fx:id="createNote" mnemonicParsing="false" onAction="#gotoNewNote" prefHeight="73.0" prefWidth="101.0" text="新建笔记" />
               <Button fx:id="MyNote" mnemonicParsing="false" onAction="#gotoMyNote" prefHeight="47.0" prefWidth="101.0" text="我的笔记" />
-              <Button fx:id="myInformation" mnemonicParsing="false" onAction="#myinformationShow" prefHeight="47.0" prefWidth="101.0" text="我的信息" />
+              <Button fx:id="myInformation" mnemonicParsing="false" onAction="#myInformationShow" prefHeight="47.0" prefWidth="101.0" text="我的信息" />
               <Button mnemonicParsing="false" onAction="#notice_show" prefHeight="47.0" prefWidth="101.0" text="公告" />
               <TextField fx:id="Find" />
             <Label fx:id="Tip" prefHeight="15.0" prefWidth="98.0" />

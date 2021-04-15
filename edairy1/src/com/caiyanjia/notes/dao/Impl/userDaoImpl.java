@@ -1,6 +1,6 @@
 package com.caiyanjia.notes.dao.Impl;
 
-import com.caiyanjia.notes.bean.User;
+import com.caiyanjia.notes.entity.User;
 import com.caiyanjia.notes.dao.Dao.BaseDAO;
 import com.caiyanjia.notes.dao.Dao.userDao;
 
@@ -10,17 +10,25 @@ import java.util.List;
 public class userDaoImpl extends BaseDAO implements userDao {
 
 	@Override
-	public void insert(Connection conn, User u) {
+	public Boolean insert(Connection conn, User u) {
 		String sqlString  = "insert into user(id,password,name,blacklist) values(?,?,?,?)";
-		Update(conn, sqlString, u.getId(),u.getPassword(),u.getName(),"0");
+		if(Update(conn, sqlString, u.getId(),u.getPassword(),u.getName(),"0")>0) {
+			return true;
+		}else{
+			return false;
+		}
 		
 	}
 
 	@Override
-	public void update(Connection conn, User u) {
+	public Boolean update(Connection conn, User u) {
 		String sqlString = "update user set password = ?,name = ? where id = ?";
 
-		Update(conn, sqlString,u.getPassword(),u.getName(),u.getId());
+		if(Update(conn, sqlString,u.getPassword(),u.getName(),u.getId())>0){
+			return true;
+		}else{
+			return  false;
+		}
 	}
 
 	
